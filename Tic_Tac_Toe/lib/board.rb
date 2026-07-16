@@ -19,4 +19,8 @@ class Board
 
     @grid[index] = player
   end
+
+  def full?
+    @grid.all? { |cell| cell.match?(/[XO]/) }
+  end
 end

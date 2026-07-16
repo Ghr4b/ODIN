@@ -17,6 +17,9 @@ class Code
     end
 
     reds = exact_indices.count
+    if reds == 4
+      return nil
+    end
 
     leftover_secret = secret_code.each_with_index.reject { |_, i| exact_indices.include?(i) }.map(&:first)
     leftover_guess  = guess.each_with_index.reject  { |_, i| exact_indices.include?(i) }.map(&:first)

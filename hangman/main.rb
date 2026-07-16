@@ -46,7 +46,6 @@ while game.tries > 0 do
         break
       else
         puts "incorrect guess"
-        game.tries -= 1
       end
     when "s"
       puts "saving game..."

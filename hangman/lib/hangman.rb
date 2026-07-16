@@ -34,6 +34,7 @@ class Hangman
     if guess == @word
       @guessed = @word
     end
+    @tries -= 1
     won?
   end
   def save

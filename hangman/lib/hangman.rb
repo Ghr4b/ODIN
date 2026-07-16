@@ -2,7 +2,7 @@ require_relative 'word_select'
 class Hangman
   attr_reader :guessed
   attr_reader :word
-  attr_reader :tries
+  attr_accessor :tries
   def initialize()
     @word = select_word("google-10000-english-no-swears.txt")
     @guessed = "-" * @word.length
@@ -17,21 +17,21 @@ class Hangman
       raise ArgumentError, "guess must be a letter"
     end
 
+    correct = false
     @word.chars.each_with_index do |char, index|
       if char == letter
         @guessed[index] = letter
+        correct = true
       end
     end
-    @tries -= 1
+    @tries -= 1 unless correct
     @guessed
   end
   def won?
     @guessed.include?("-") == false
   end
   def guess_word(guess)
-    if guess != @word
-      @tries -= 1
-    else
+    if guess == @word
       @guessed = @word
     end
     won?
@@ -47,11 +47,10 @@ class Hangman
     puts "saved to save/#{filename}.dat"
   end
   def self.load(filename)
-    if !File.exist?("save/#{filename}.dat")
+    if !File.exist?("save/#{filename}")
       raise ArgumentError, "file not found"
-      return nil
     end
-    saved_data = File.binread("save/#{filename}.dat")
+    saved_data = File.binread("save/#{filename}")
     puts "game loaded successfully"
     return Marshal.load(saved_data)
   end

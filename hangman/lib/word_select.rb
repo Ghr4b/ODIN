@@ -4,8 +4,8 @@ def select_word(wordlist="google-10000-english-no-swears.txt")
     exit
   end
   valid_words = File.readlines(wordlist).map(&:chomp).select do |word|
-      word.length.between?(5, 12)
-    end
+    word.length.between?(5, 12)
+  end
 
-    valid_words.sample
+  valid_words.sample
 end

@@ -19,6 +19,9 @@ when "l"
     puts "invalid filename, #{e.message}"
     return
   end
+else
+  puts "invalid input"
+  return
 end
 
 while game.tries > 0 do

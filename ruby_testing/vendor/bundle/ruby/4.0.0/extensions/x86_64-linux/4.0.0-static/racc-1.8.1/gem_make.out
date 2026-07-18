@@ -1,0 +1,18 @@
+current directory: /home/lhadi/Documents/ODIN/ruby_testing/vendor/bundle/ruby/4.0.0/gems/racc-1.8.1/ext/racc/cparse
+/home/lhadi/.rubies/ruby-4.0.6/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /home/lhadi/Documents/ODIN/ruby_testing/vendor/bundle/ruby/4.0.0/gems/racc-1.8.1/ext/racc/cparse
+make -j9 DESTDIR\= sitearchdir\=./.gem.20260717-70862-adsfs8 sitelibdir\=./.gem.20260717-70862-adsfs8 clean
+
+current directory: /home/lhadi/Documents/ODIN/ruby_testing/vendor/bundle/ruby/4.0.0/gems/racc-1.8.1/ext/racc/cparse
+make -j9 DESTDIR\= sitearchdir\=./.gem.20260717-70862-adsfs8 sitelibdir\=./.gem.20260717-70862-adsfs8
+compiling cparse.c
+linking shared-object racc/cparse.so
+
+current directory: /home/lhadi/Documents/ODIN/ruby_testing/vendor/bundle/ruby/4.0.0/gems/racc-1.8.1/ext/racc/cparse
+make -j9 DESTDIR\= sitearchdir\=./.gem.20260717-70862-adsfs8 sitelibdir\=./.gem.20260717-70862-adsfs8 install
+/usr/bin/install -c -m 0755 cparse.so ./.gem.20260717-70862-adsfs8/racc
+
+current directory: /home/lhadi/Documents/ODIN/ruby_testing/vendor/bundle/ruby/4.0.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20260717-70862-adsfs8 sitelibdir\=./.gem.20260717-70862-adsfs8 clean

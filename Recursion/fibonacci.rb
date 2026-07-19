@@ -23,3 +23,12 @@ puts fib_rec(1).inspect
 puts fib_rec(2).inspect
 puts fib_rec(8).inspect
 puts fib_rec(4).inspect
+puts fib_rec(0).inspect
+
+puts fibs(8).inspect
+puts fibs(-1).inspect
+puts fibs(0).inspect
+puts fibs(1).inspect
+puts fibs(2).inspect
+puts fibs(8).inspect
+puts fibs(4).inspect

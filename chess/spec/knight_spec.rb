@@ -35,20 +35,57 @@ RSpec.describe Knight do
         ]
         expect(knight.pseudo_legal_moves(board)).to match_array(expected)
       end
+
+      context 'with all 8 squares occupied by friendlies' do
+        before do
+          [[1,2],[1,4],[2,1],[2,5],[4,1],[4,5],[5,2],[5,4]].each do |pos|
+            board.set_piece(pos, Pawn.new(:white, pos))
+          end
+        end
+
+        it 'has 0 moves' do
+          expect(knight.pseudo_legal_moves(board)).to be_empty
+        end
+      end
+
+      context 'with all 8 squares occupied by enemies' do
+        before do
+          [[1,2],[1,4],[2,1],[2,5],[4,1],[4,5],[5,2],[5,4]].each do |pos|
+            board.set_piece(pos, Pawn.new(:black, pos))
+          end
+        end
+
+        it 'can capture all 8' do
+          expect(knight.pseudo_legal_moves(board).size).to eq(8)
+        end
+      end
     end
 
     context 'in a corner' do
       let(:board) { build_board }
-      let(:knight) { Knight.new(:white, [0, 0]) }
 
-      before { board.set_piece([0, 0], knight) }
-
-      it 'has 2 moves from corner' do
-        expect(knight.pseudo_legal_moves(board).size).to eq(2)
+      it 'has 2 moves from corner [0,0]' do
+        knight = Knight.new(:white, [0, 0])
+        board.set_piece([0, 0], knight)
+        expect(knight.pseudo_legal_moves(board)).to match_array([[1, 2], [2, 1]])
       end
 
-      it 'jumps to correct squares' do
-        expect(knight.pseudo_legal_moves(board)).to match_array([[1, 2], [2, 1]])
+      it 'has 4 moves from corner [0,7]' do
+        knight = Knight.new(:white, [0, 7])
+        board.set_piece([0, 7], knight)
+        expect(knight.pseudo_legal_moves(board)).to match_array([[1, 5], [2, 6]])
+      end
+
+      it 'has 4 moves from corner [7,0]' do
+        knight = Knight.new(:black, [7, 0])
+        board.set_piece([7, 0], knight)
+        expect(knight.pseudo_legal_moves(board)).to match_array([[5, 1], [6, 2]])
+      end
+
+      it 'has 2 moves from corner [7,7]' do
+        knight = Knight.new(:black, [7, 7])
+        board.set_piece([7, 7], knight)
+        expect(knight.pseudo_legal_moves(board)).to match_array([[5, 6], [6, 5]])
       end
     end
 

@@ -35,6 +35,47 @@ RSpec.describe Bishop do
       end
     end
 
+    context 'in a corner' do
+      let(:board) { build_board }
+
+      it 'has 7 moves from corner [0,0]' do
+        bishop = Bishop.new(:white, [0, 0])
+        board.set_piece([0, 0], bishop)
+        expect(bishop.pseudo_legal_moves(board).size).to eq(7)
+      end
+
+      it 'has 7 moves from corner [0,7]' do
+        bishop = Bishop.new(:white, [0, 7])
+        board.set_piece([0, 7], bishop)
+        expect(bishop.pseudo_legal_moves(board).size).to eq(7)
+      end
+
+      it 'has 7 moves from corner [7,0]' do
+        bishop = Bishop.new(:black, [7, 0])
+        board.set_piece([7, 0], bishop)
+        expect(bishop.pseudo_legal_moves(board).size).to eq(7)
+      end
+    end
+
+    context 'all 4 diagonals blocked simultaneously' do
+      let(:board) { build_board }
+      let(:bishop) { Bishop.new(:white, [3, 3]) }
+
+      before do
+        board.set_piece([3, 3], bishop)
+        board.set_piece([4, 4], Pawn.new(:white, [4, 4]))
+        board.set_piece([4, 2], Pawn.new(:white, [4, 2]))
+        board.set_piece([2, 4], Pawn.new(:white, [2, 4]))
+        board.set_piece([2, 2], Pawn.new(:white, [2, 2]))
+      end
+
+      it 'has 4 moves (one step in each direction before blockers)' do
+        moves = bishop.pseudo_legal_moves(board)
+        expect(moves.size).to eq(0)
+        expect(moves).not_to include([4, 4], [4, 2], [2, 4], [2, 2])
+      end
+    end
+
     context 'when blocked by friendly piece' do
       let(:board) { build_board }
       let(:bishop) { Bishop.new(:white, [3, 3]) }

@@ -33,6 +33,56 @@ RSpec.describe Queen do
       end
     end
 
+    context 'in a corner' do
+      let(:board) { build_board }
+
+      it 'has 21 moves from corner [0,0]' do
+        queen = Queen.new(:white, [0, 0])
+        board.set_piece([0, 0], queen)
+        expect(queen.pseudo_legal_moves(board).size).to eq(21)
+      end
+
+      it 'has 21 moves from corner [0,7]' do
+        queen = Queen.new(:white, [0, 7])
+        board.set_piece([0, 7], queen)
+        expect(queen.pseudo_legal_moves(board).size).to eq(21)
+      end
+
+      it 'has 21 moves from corner [7,7]' do
+        queen = Queen.new(:black, [7, 7])
+        board.set_piece([7, 7], queen)
+        expect(queen.pseudo_legal_moves(board).size).to eq(21)
+      end
+    end
+
+    context 'completely surrounded' do
+      let(:board) { build_board }
+      let(:queen) { Queen.new(:white, [3, 3]) }
+
+      before do
+        board.set_piece([3, 3], queen)
+        [[2,2],[2,3],[2,4],[3,2],[3,4],[4,2],[4,3],[4,4]].each do |pos|
+          board.set_piece(pos, Pawn.new(:white, pos))
+        end
+      end
+
+      it 'has 0 moves when surrounded by friendlies' do
+        expect(queen.pseudo_legal_moves(board)).to be_empty
+      end
+
+      it 'has 8 moves when surrounded by enemies (all captures)' do
+        board.set_piece([2,2], Pawn.new(:black, [2,2]))
+        board.set_piece([2,3], Pawn.new(:black, [2,3]))
+        board.set_piece([2,4], Pawn.new(:black, [2,4]))
+        board.set_piece([3,2], Pawn.new(:black, [3,2]))
+        board.set_piece([3,4], Pawn.new(:black, [3,4]))
+        board.set_piece([4,2], Pawn.new(:black, [4,2]))
+        board.set_piece([4,3], Pawn.new(:black, [4,3]))
+        board.set_piece([4,4], Pawn.new(:black, [4,4]))
+        expect(queen.pseudo_legal_moves(board).size).to eq(8)
+      end
+    end
+
     context 'when blocked' do
       let(:board) { build_board }
       let(:queen) { Queen.new(:white, [3, 3]) }

@@ -64,7 +64,13 @@ class GameState
       switch_player
       @history << move
     end
-    @stalemate_count += 1 if success and !( move.capture || move.piece.is_a?(Pawn) )
+    if success
+      if move.capture || move.piece.is_a?(Pawn)
+        @stalemate_count = 0
+      else
+        @stalemate_count += 1
+      end
+    end
     success
   end
   def undo()

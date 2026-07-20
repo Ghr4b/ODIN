@@ -24,6 +24,24 @@ RSpec.describe Board do
     it 'returns the piece at the given position' do
       expect(board.piece_at([0, 0])).to be_a(Rook)
     end
+
+    context 'with out-of-bounds positions' do
+      it 'returns nil for negative column index' do
+        expect(board.piece_at([0, -1])).to be_nil
+      end
+
+      it 'returns nil for negative row index' do
+        expect(board.piece_at([-1, 0])).to be_nil
+      end
+
+      it 'returns nil for over-max row' do
+        expect(board.piece_at([8, 0])).to be_nil
+      end
+
+      it 'returns nil for over-max col' do
+        expect(board.piece_at([0, 8])).to be_nil
+      end
+    end
   end
 
   describe '#set_piece' do
@@ -46,6 +64,10 @@ RSpec.describe Board do
 
     it 'returns false for occupied square' do
       expect(board.empty?([0, 0])).to be false
+    end
+
+    it 'returns nil for negative column' do
+      expect(board.empty?([0, -1])).to be_nil
     end
   end
 
@@ -104,18 +126,16 @@ RSpec.describe Board do
     it 'returns pieces of the correct color' do
       expect(board.all_pieces(:white)).to all(have_attributes(color: :white))
     end
-  end
 
-  describe '#find_king' do
-    it 'finds white king index' do
-      index = board.find_king(:white)
-      expect(index).to be_a(Integer)
-      expect(board.instance_variable_get(:@squares)[index]).to be_a(King)
+    it 'returns fewer pieces after captures' do
+      board.set_piece([0, 0], nil)
+      expect(board.all_pieces(:white).size).to eq(15)
+      expect(board.all_pieces(:black).size).to eq(16)
     end
 
-    it 'returns nil when king is missing' do
-      board.set_piece([0, 4], nil)
-      expect(board.find_king(:white)).to be_nil
+    it 'returns empty array when no pieces of that color' do
+      (0..7).each { |r| (0..7).each { |c| board.set_piece([r, c], nil) } }
+      expect(board.all_pieces(:white)).to be_empty
     end
   end
 
@@ -147,6 +167,22 @@ RSpec.describe Board do
       board.set_piece([2, 5], Knight.new(:black, [2, 5]))
       expect(board.incheck?(:white)).to be true
     end
+
+    it 'detects check by queen' do
+      (0..7).each { |r| (0..7).each { |c| board.set_piece([r, c], nil) } }
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+      board.set_piece([3, 7], Queen.new(:black, [3, 7]))
+      expect(board.incheck?(:white)).to be true
+    end
+
+    it 'detects check by pawn' do
+      (0..7).each { |r| (0..7).each { |c| board.set_piece([r, c], nil) } }
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+      board.set_piece([1, 5], Pawn.new(:black, [1, 5]))
+      expect(board.incheck?(:white)).to be true
+    end
   end
 
   describe '#incheckmate?' do
@@ -154,7 +190,7 @@ RSpec.describe Board do
       expect(board.incheckmate?(:white)).to be false
     end
 
-    it 'detects back-rank checkmate' do
+    it 'detects back-rank checkmate for white' do
       (0..7).each { |r| (0..7).each { |c| board.set_piece([r, c], nil) } }
       board.set_piece([0, 4], King.new(:white, [0, 4]))
       board.set_piece([7, 4], King.new(:black, [7, 4]))
@@ -162,6 +198,24 @@ RSpec.describe Board do
       board.set_piece([1, 3], Rook.new(:black, [1, 3]))
       board.set_piece([1, 5], Rook.new(:black, [1, 5]))
       expect(board.incheckmate?(:white)).to be true
+    end
+
+    it 'detects back-rank checkmate for black' do
+      (0..7).each { |r| (0..7).each { |c| board.set_piece([r, c], nil) } }
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+      board.set_piece([6, 4], Rook.new(:white, [6, 4]))
+      board.set_piece([6, 3], Rook.new(:white, [6, 3]))
+      board.set_piece([6, 5], Rook.new(:white, [6, 5]))
+      expect(board.incheckmate?(:black)).to be true
+    end
+
+    it 'returns false when king can escape check' do
+      (0..7).each { |r| (0..7).each { |c| board.set_piece([r, c], nil) } }
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+      board.set_piece([1, 4], Rook.new(:black, [1, 4]))
+      expect(board.incheckmate?(:white)).to be false
     end
   end
 
@@ -176,6 +230,25 @@ RSpec.describe Board do
       board.set_piece([1, 2], Queen.new(:black, [1, 2]))
       board.set_piece([2, 1], Rook.new(:black, [2, 1]))
       expect(board.stalemate?(:white)).to be true
+    end
+
+    it 'detects stalemate with king trapped by own pieces' do
+      (0..7).each { |r| (0..7).each { |c| board.set_piece([r, c], nil) } }
+      board.set_piece([0, 0], King.new(:white, [0, 0]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+      board.set_piece([0, 1], Pawn.new(:white, [0, 1]))
+      board.set_piece([1, 0], Pawn.new(:white, [1, 0]))
+      board.set_piece([0, 2], Rook.new(:black, [0, 2]))
+      board.set_piece([2, 0], Pawn.new(:black, [2, 0]))
+      board.set_piece([3, 2], Knight.new(:black, [3, 2]))
+      expect(board.stalemate?(:white)).to be true
+    end
+
+    it 'returns false when in check (not stalemate)' do
+      (0..7).each { |r| (0..7).each { |c| board.set_piece([r, c], nil) } }
+      board.set_piece([0, 0], King.new(:white, [0, 0]))
+      board.set_piece([1, 1], Rook.new(:black, [1, 1]))
+      expect(board.stalemate?(:white)).to be false
     end
   end
 
@@ -214,6 +287,40 @@ RSpec.describe Board do
       board.handle_promotion([0, 0], :queen, :black)
       expect(board.piece_at([0, 0]).color).to eq(:black)
     end
+
+    context 'short-form promotion symbols' do
+      it 'promotes to queen with :Q' do
+        board.set_piece([7, 0], Pawn.new(:white, [7, 0]))
+        board.handle_promotion([7, 0], :Q, :white)
+        expect(board.piece_at([7, 0])).to be_a(Queen)
+      end
+
+      it 'promotes to rook with :R' do
+        board.set_piece([7, 0], Pawn.new(:white, [7, 0]))
+        board.handle_promotion([7, 0], :R, :white)
+        expect(board.piece_at([7, 0])).to be_a(Rook)
+      end
+
+      it 'promotes to bishop with :B' do
+        board.set_piece([7, 0], Pawn.new(:white, [7, 0]))
+        board.handle_promotion([7, 0], :B, :white)
+        expect(board.piece_at([7, 0])).to be_a(Bishop)
+      end
+
+      it 'promotes to knight with :N' do
+        board.set_piece([7, 0], Pawn.new(:white, [7, 0]))
+        board.handle_promotion([7, 0], :N, :white)
+        expect(board.piece_at([7, 0])).to be_a(Knight)
+      end
+    end
+
+    context 'invalid promotion symbol' do
+      it 'silently leaves the piece unchanged' do
+        board.set_piece([7, 0], Pawn.new(:white, [7, 0]))
+        board.handle_promotion([7, 0], :elephant, :white)
+        expect(board.piece_at([7, 0])).to be_a(Pawn)
+      end
+    end
   end
 
   describe '#square_to_coord' do
@@ -233,8 +340,20 @@ RSpec.describe Board do
       expect(board.square_to_coord('z9')).to be_nil
     end
 
+    it 'returns nil for empty string' do
+      expect(board.square_to_coord('')).to be_nil
+    end
+
+    it 'raises error for nil' do
+      expect { board.square_to_coord(nil) }.to raise_error(NoMethodError)
+    end
+
     it 'converts uppercase' do
       expect(board.square_to_coord('A1')).to eq([0, 0])
+    end
+
+    it 'converts mixed case' do
+      expect(board.square_to_coord('E4')).to eq([3, 4])
     end
   end
 
@@ -295,11 +414,70 @@ RSpec.describe Board do
       expect(king.moves).to eq(0)
       expect(king.has_moved?).to be false
     end
+
+    it 'restores a captured piece with undo_move directly' do
+      (0..7).each { |r| (0..7).each { |c| board.set_piece([r, c], nil) } }
+      white_rook = Rook.new(:white, [3, 0])
+      black_pawn = Pawn.new(:black, [4, 0])
+      board.set_piece([3, 0], white_rook)
+      board.set_piece([4, 0], black_pawn)
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+
+      move = Move.new(from: [3, 0], to: [4, 0], piece: white_rook, capture: black_pawn)
+      board.move([3, 0], [4, 0])
+      white_rook.moves = 1
+      board.undo_move(move)
+
+      expect(board.piece_at([3, 0])).to be(white_rook)
+      expect(board.piece_at([4, 0])).to be(black_pawn)
+      expect(white_rook.position).to eq([3, 0])
+      expect(black_pawn.position).to eq([4, 0])
+    end
+
+    it 'handles capstone position != move.to' do
+      (0..7).each { |r| (0..7).each { |c| board.set_piece([r, c], nil) } }
+      white_pawn = Pawn.new(:white, [4, 3])
+      black_pawn = Pawn.new(:black, [4, 4])
+      board.set_piece([4, 3], white_pawn)
+      board.set_piece([4, 4], black_pawn)
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+
+      last_move = Move.new(from: [6, 4], to: [4, 4], piece: black_pawn)
+      en_passant_move = Move.new(from: [4, 3], to: [5, 4], piece: white_pawn, capture: black_pawn)
+
+      handle_enpassant(board, en_passant_move, last_move, white_pawn)
+      board.undo_move(en_passant_move)
+
+      expect(board.piece_at([4, 3])).to be(white_pawn)
+      expect(board.piece_at([4, 4])).to be(black_pawn)
+      expect(board.piece_at([5, 4])).to be_nil
+    end
   end
 
   describe '#display' do
     it 'outputs the board' do
       expect { board.display }.to output.to_stdout
+    end
+
+    it 'includes rank labels' do
+      expect { board.display }.to output(/8/).to_stdout
+      expect { board.display }.to output(/1/).to_stdout
+    end
+
+    it 'includes file labels' do
+      expect { board.display }.to output(/a/).to_stdout
+      expect { board.display }.to output(/h/).to_stdout
+    end
+
+    it 'includes piece symbols' do
+      expect { board.display }.to output(/♟/).to_stdout
+      expect { board.display }.to output(/♜/).to_stdout
+      expect { board.display }.to output(/♞/).to_stdout
+      expect { board.display }.to output(/♝/).to_stdout
+      expect { board.display }.to output(/♛/).to_stdout
+      expect { board.display }.to output(/♚/).to_stdout
     end
   end
 end

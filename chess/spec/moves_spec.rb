@@ -36,6 +36,25 @@ RSpec.describe 'moves.rb functions' do
         expect(incheckafter?(board, :white, move)).to be false
       end
 
+      it 'detects that capturing the checking piece resolves check' do
+        clear_board
+        board.set_piece([0, 4], King.new(:white, [0, 4]))
+        board.set_piece([7, 4], King.new(:black, [7, 4]))
+        board.set_piece([3, 4], Rook.new(:black, [3, 4]))
+        board.set_piece([1, 4], Rook.new(:white, [1, 4]))
+        move = Move.new(from: [1, 4], to: [3, 4])
+        expect(incheckafter?(board, :white, move)).to be false
+      end
+
+      it 'detects that moving king out of check resolves it' do
+        clear_board
+        board.set_piece([0, 4], King.new(:white, [0, 4]))
+        board.set_piece([7, 4], King.new(:black, [7, 4]))
+        board.set_piece([5, 5], Rook.new(:black, [5, 5]))
+        move = Move.new(from: [0, 4], to: [1, 4])
+        expect(incheckafter?(board, :white, move)).to be false
+      end
+
       it 'detects that a move still leaves king in check' do
         clear_board
         board.set_piece([0, 4], King.new(:white, [0, 4]))
@@ -95,6 +114,29 @@ RSpec.describe 'moves.rb functions' do
         expect(incheckafter?(board, :white, Move.new(from: bishop.position, to: move))).to be false
       end
     end
+
+    it 'returns empty for piece with zero legal moves (completely pinned)' do
+      clear_board
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([1, 3], Bishop.new(:white, [1, 3]))
+      board.set_piece([1, 4], Knight.new(:white, [1, 4]))
+      board.set_piece([2, 4], Rook.new(:black, [2, 4]))
+      board.set_piece([0, 3], Rook.new(:black, [0, 3]))
+      knight = board.piece_at([1, 4])
+      moves = legal_moves(board, knight)
+      expect(moves).to be_empty
+    end
+
+    it 'returns only legal moves for king in check' do
+      clear_board
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+      board.set_piece([5, 5], Rook.new(:black, [5, 5]))
+      board.set_piece([1, 3], Pawn.new(:white, [1, 3]))
+      king = board.piece_at([0, 4])
+      moves = legal_moves(board, king)
+      expect(moves).to include([1, 4])
+    end
   end
 
   describe '#legal_moves_color' do
@@ -115,6 +157,22 @@ RSpec.describe 'moves.rb functions' do
       board.set_piece([1, 3], Rook.new(:black, [1, 3]))
       board.set_piece([1, 5], Rook.new(:black, [1, 5]))
       expect(legal_moves_color(board, :white)).to be_empty
+    end
+
+    it 'filters out diagonal moves for pinned pawn' do
+      clear_board
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+      board.set_piece([2, 4], Pawn.new(:white, [2, 4]))
+      board.set_piece([5, 4], Rook.new(:black, [5, 4]))
+      board.set_piece([3, 3], Pawn.new(:black, [3, 3]))
+      board.set_piece([3, 5], Pawn.new(:black, [3, 5]))
+      pawn = board.piece_at([2, 4])
+      pseudo = pawn.pseudo_legal_moves(board)
+      legal = legal_moves(board, pawn)
+      expect(pseudo.size).to eq(3)
+      expect(legal.size).to eq(1)
+      expect(legal).to include([3, 4])
     end
   end
 
@@ -151,6 +209,10 @@ RSpec.describe 'moves.rb functions' do
       board.set_piece([rank, 1], nil)
       board.set_piece([rank, 0], rook)
       king
+    end
+
+    it 'returns false for invalid side argument' do
+      expect(can_castle(board, :white, :invalid)).to be false
     end
 
     context 'kingside' do
@@ -261,6 +323,30 @@ RSpec.describe 'moves.rb functions' do
       expect(king.has_moved?).to be true
       expect(rook.has_moved?).to be true
     end
+
+    it 'performs kingside castling for black' do
+      king = King.new(:black, [7, 4])
+      rook = Rook.new(:black, [7, 7])
+      board.set_piece([7, 4], king)
+      board.set_piece([7, 7], rook)
+      castle(board, :black, :short)
+      expect(board.piece_at([7, 6])).to be_a(King)
+      expect(board.piece_at([7, 5])).to be_a(Rook)
+      expect(board.piece_at([7, 4])).to be_nil
+      expect(board.piece_at([7, 7])).to be_nil
+    end
+
+    it 'performs queenside castling for black' do
+      king = King.new(:black, [7, 4])
+      rook = Rook.new(:black, [7, 0])
+      board.set_piece([7, 4], king)
+      board.set_piece([7, 0], rook)
+      castle(board, :black, :long)
+      expect(board.piece_at([7, 2])).to be_a(King)
+      expect(board.piece_at([7, 3])).to be_a(Rook)
+      expect(board.piece_at([7, 4])).to be_nil
+      expect(board.piece_at([7, 0])).to be_nil
+    end
   end
 
   describe '#handle_enpassant' do
@@ -316,6 +402,39 @@ RSpec.describe 'moves.rb functions' do
       handle_enpassant(board, move, last_move, white_pawn)
       expect(white_pawn.position).to eq([5, 4])
     end
+
+    it 'performs en passant for black capturing white' do
+      white_pawn = Pawn.new(:white, [3, 3])
+      black_pawn = Pawn.new(:black, [3, 4])
+      board.set_piece([3, 3], white_pawn)
+      board.set_piece([3, 4], black_pawn)
+      last_move = Move.new
+      last_move.from = [1, 3]
+      last_move.to = [3, 3]
+      last_move.piece = white_pawn
+      move = Move.new
+      move.from = [3, 4]
+      move.to = [2, 3]
+      result = handle_enpassant(board, move, last_move, black_pawn)
+      expect(result).to be true
+      expect(board.piece_at([2, 3])).to be(black_pawn)
+      expect(board.piece_at([3, 3])).to be_nil
+      expect(board.piece_at([3, 4])).to be_nil
+    end
+
+    it 'rolls back en passant if it puts own king in check' do
+      clear_board
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([4, 4], Pawn.new(:white, [4, 4]))
+      board.set_piece([4, 3], Pawn.new(:black, [4, 3]))
+      board.set_piece([3, 2], Rook.new(:white, [3, 2]))
+      last_move = Move.new(from: [1, 3], to: [3, 3], piece: Pawn.new(:black, [3, 3]))
+      move = Move.new(from: [4, 4], to: [5, 3])
+      result = handle_enpassant(board, move, last_move, board.piece_at([4, 4]))
+      expect(result).to be false
+      expect(board.piece_at([4, 4])).to be_a(Pawn)
+      expect(board.piece_at([4, 3])).to be_a(Pawn)
+    end
   end
 
   describe '#apply_move' do
@@ -347,6 +466,29 @@ RSpec.describe 'moves.rb functions' do
       move = Move.new
       move.from = [1, 0]
       move.to = [4, 0]
+      success, = apply_move(board, move, :white)
+      expect(success).to be false
+    end
+
+    it 'returns false when piece at from does not match color' do
+      setup_minimal
+      board.set_piece([3, 0], Pawn.new(:black, [3, 0]))
+      move = Move.new(from: [3, 0], to: [4, 0])
+      success, = apply_move(board, move, :white)
+      expect(success).to be false
+    end
+
+    it 'returns false when no piece at from' do
+      setup_minimal
+      move = Move.new(from: [3, 0], to: [4, 0])
+      success, = apply_move(board, move, :white)
+      expect(success).to be false
+    end
+
+    it 'rejects an illegal castle move' do
+      setup_minimal
+      move = Move.new
+      move.castle = :short
       success, = apply_move(board, move, :white)
       expect(success).to be false
     end
@@ -400,6 +542,18 @@ RSpec.describe 'moves.rb functions' do
       success, = apply_move(board, move, :white)
       expect(success).to be true
       expect(board.piece_at([7, 3])).to be_a(Knight)
+    end
+
+    it 'applies en passant through apply_move' do
+      setup_minimal
+      board.set_piece([4, 3], Pawn.new(:white, [4, 3]))
+      board.set_piece([4, 4], Pawn.new(:black, [4, 4]))
+      last_move = Move.new(from: [6, 4], to: [4, 4], piece: board.piece_at([4, 4]))
+      move = Move.new(from: [4, 3], to: [5, 4])
+      success, result = apply_move(board, move, :white, last_move)
+      expect(success).to be true
+      expect(board.piece_at([5, 4])).to be_a(Pawn)
+      expect(board.piece_at([4, 4])).to be_nil
     end
 
     it 'sets check flag when delivering check' do
@@ -485,7 +639,6 @@ RSpec.describe 'moves.rb functions' do
       move = Move.new(from: [0, 4], to: [1, 4])
       apply_move(board, move, :white)
       expect(king.moves).to eq(1)
-      # Move the king again
       move2 = Move.new(from: [1, 4], to: [2, 4])
       apply_move(board, move2, :white)
       expect(king.moves).to eq(2)
@@ -507,6 +660,28 @@ RSpec.describe 'moves.rb functions' do
       move = Move.new(from: [6, 0], to: [7, 0], promotion: :knight)
       success, result_move = apply_move(board, move, :white)
       expect(result_move.promotion).to eq(:knight)
+    end
+  end
+
+  describe 'Move Struct' do
+    it 'has all expected fields' do
+      move = Move.new
+      expect(move).to respond_to(:from)
+      expect(move).to respond_to(:to)
+      expect(move).to respond_to(:piece)
+      expect(move).to respond_to(:capture)
+      expect(move).to respond_to(:castle)
+      expect(move).to respond_to(:promotion)
+      expect(move).to respond_to(:checkmate)
+      expect(move).to respond_to(:check)
+    end
+
+    it 'allows keyword initialization' do
+      piece = Pawn.new(:white, [1, 0])
+      move = Move.new(from: [1, 0], to: [3, 0], piece: piece, capture: nil)
+      expect(move.from).to eq([1, 0])
+      expect(move.to).to eq([3, 0])
+      expect(move.piece).to be(piece)
     end
   end
 end

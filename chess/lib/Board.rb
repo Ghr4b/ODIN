@@ -8,10 +8,11 @@ class Board
     setup_starting_position
   end
 
-  def piece_at(pos)      = @squares[to_index(pos)]
-  def set_piece(pos, pc) = @squares[to_index(pos)] = pc
-  def empty?(pos)        = @squares[to_index(pos)].nil?
+  def piece_at(pos)      = in_bounds?(pos) ? @squares[to_index(pos)] : nil
+  def set_piece(pos, pc) = in_bounds?(pos) ? @squares[to_index(pos)] = pc : nil
+  def empty?(pos)        = in_bounds?(pos) ? @squares[to_index(pos)].nil? : nil
   def move(from, to)
+    return unless in_bounds?(from) && in_bounds?(to)
     capture = nil
     piece = piece_at(from)
     return unless piece
@@ -23,13 +24,7 @@ class Board
     set_piece(from, nil)
     capture
   end
-  # def in_bounds?(row, col) = row.between?(0,7) && col.between?(0,7)
-  def find_king(color)
-    @squares.each_with_index do |piece, index|
-      return index if piece.is_a?(King) && piece.color == color
-    end
-    nil
-  end
+  def in_bounds?(pos) = pos.all? { |coord| coord.between?(0, 7) }
   def all_pieces(color)
     @squares.compact.select { |piece| piece.color == color }
   end
@@ -140,6 +135,7 @@ class Board
 
   private
   def to_index(pos)
+    return nil unless in_bounds?(pos)
     row, col = pos
     row * SIZE + col
   end

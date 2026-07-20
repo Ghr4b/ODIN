@@ -13,6 +13,10 @@ RSpec.describe GameState do
     it 'initializes empty history' do
       expect(game.instance_variable_get(:@history)).to eq([])
     end
+
+    it 'initializes stalemate count to 0' do
+      expect(game.instance_variable_get(:@stalemate_count)).to eq(0)
+    end
   end
 
   describe '#switch_player' do
@@ -93,12 +97,48 @@ RSpec.describe GameState do
       expect(move.promotion).to eq(:queen)
     end
 
+    it 'parses promotion to rook with =R' do
+      move = game.parse_move('e7e8=R')
+      expect(move.promotion).to eq(:rook)
+    end
+
+    it 'parses promotion to bishop with =B' do
+      move = game.parse_move('e7e8=B')
+      expect(move.promotion).to eq(:bishop)
+    end
+
+    it 'parses promotion to knight with =N' do
+      move = game.parse_move('e7e8=N')
+      expect(move.promotion).to eq(:knight)
+    end
+
+    it 'parses promotion with lowercase n' do
+      move = game.parse_move('e7e8=n')
+      expect(move.promotion).to eq(:knight)
+    end
+
     it 'raises error for invalid format' do
       expect { game.parse_move('invalid') }.to raise_error(ArgumentError)
     end
 
     it 'raises error for out-of-board coordinates' do
       expect { game.parse_move('i9i9') }.to raise_error(ArgumentError)
+    end
+
+    it 'raises error for nil input' do
+      expect { game.parse_move(nil) }.to raise_error(ArgumentError)
+    end
+
+    it 'raises error for empty string' do
+      expect { game.parse_move('') }.to raise_error(ArgumentError)
+    end
+
+    it 'raises error for partial coordinates' do
+      expect { game.parse_move('a2a') }.to raise_error(ArgumentError)
+    end
+
+    it 'raises error for too-short input' do
+      expect { game.parse_move('a') }.to raise_error(ArgumentError)
     end
 
     it 'strips whitespace' do
@@ -206,6 +246,27 @@ RSpec.describe GameState do
       result = game.make_move('0-0')
       expect(result).to be true
       expect(b.piece_at([0, 6])).to be_a(King)
+    end
+
+    it 'increments stalemate count for non-capture non-pawn moves' do
+      game.make_move('e2e4')
+      count = game.instance_variable_get(:@stalemate_count)
+      expect(count).to eq(0)
+    end
+
+    it 'resets stalemate count on capture moves' do
+      b = game.board
+      (0..7).each { |r| (0..7).each { |c| b.set_piece([r, c], nil) } }
+      b.set_piece([0, 4], King.new(:white, [0, 4]))
+      b.set_piece([7, 4], King.new(:black, [7, 4]))
+      b.set_piece([1, 0], Knight.new(:white, [1, 0]))
+      game.make_move('a2a3')
+      game.make_move('a7a6')
+      game.make_move('a3a4')
+      game.make_move('a6a5')
+      game.make_move('a4a5')
+      count = game.instance_variable_get(:@stalemate_count)
+      expect(count).to eq(0)
     end
   end
 
@@ -352,18 +413,57 @@ RSpec.describe GameState do
       2.times { game.undo }
       expect(game.current_player).to eq(:white)
     end
+
+    it 'undoes en passant with black capturing white' do
+      b = game.board
+      (0..7).each { |r| (0..7).each { |c| b.set_piece([r, c], nil) } }
+      b.set_piece([0, 4], King.new(:white, [0, 4]))
+      b.set_piece([7, 4], King.new(:black, [7, 4]))
+      white_pawn = Pawn.new(:white, [3, 3])
+      black_pawn = Pawn.new(:black, [3, 4])
+      b.set_piece([3, 3], white_pawn)
+      b.set_piece([3, 4], black_pawn)
+      game.instance_variable_set(:@current_player, :black)
+      history = game.instance_variable_get(:@history)
+      history << Move.new(from: [1, 3], to: [3, 3], piece: white_pawn)
+      game.make_move('e4d3')
+      expect(b.piece_at([2, 3])).to be_a(Pawn)
+      expect(b.piece_at([2, 3]).color).to eq(:black)
+      expect(b.piece_at([3, 3])).to be_nil
+      expect(b.piece_at([3, 4])).to be_nil
+      game.undo
+      expect(b.piece_at([3, 3])).to be(white_pawn)
+      expect(b.piece_at([3, 4])).to be(black_pawn)
+      expect(b.piece_at([2, 3])).to be_nil
+    end
   end
 
   describe '#save and #load' do
-    it 'saves and loads game state' do
+    before do
       Dir.mkdir('saves') unless Dir.exist?('saves')
+    end
+
+    after do
+      Dir.glob('saves/test_save_*').each { |f| File.delete(f) }
+    end
+
+    it 'saves and loads game state' do
       game.make_move('e2e4')
       filename = "test_save_#{Time.now.to_i}"
       game.save(filename)
       loaded = GameState.load(filename)
       expect(loaded.current_player).to eq(:black)
       expect(loaded.board.piece_at([3, 4])).to be_a(Pawn)
-      File.delete("saves/#{filename}.dump")
+    end
+
+    it 'save returns the filename' do
+      filename = "test_save_#{Time.now.to_i}"
+      result = game.save(filename)
+      expect(result).to eq(filename)
+    end
+
+    it 'raises Errno::ENOENT when loading non-existent file' do
+      expect { GameState.load('nonexistent_file') }.to raise_error(Errno::ENOENT)
     end
   end
 end

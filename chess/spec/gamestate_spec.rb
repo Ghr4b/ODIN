@@ -157,13 +157,14 @@ RSpec.describe GameState do
 
   describe '#save and #load' do
     it 'saves and loads game state' do
+      Dir.mkdir('saves') unless Dir.exist?('saves')
       game.make_move('e2e4')
       filename = "test_save_#{Time.now.to_i}"
       game.save(filename)
       loaded = GameState.load(filename)
       expect(loaded.current_player).to eq(:black)
       expect(loaded.board.piece_at([3, 4])).to be_a(Pawn)
-      File.delete("#{filename}.dump")
+      File.delete("saves/#{filename}.dump")
     end
   end
 end

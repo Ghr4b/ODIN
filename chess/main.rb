@@ -3,7 +3,10 @@ require_relative 'lib/piece'
 require_relative 'lib/moves'
 require_relative 'lib/gamestate'
 
+Dir.mkdir('saves') unless Dir.exist?('saves')
+
 game = GameState.new
+message = nil
 
 loop do
   system('clear') || system('cls')
@@ -22,6 +25,9 @@ loop do
     puts "#{color.capitalize} is in check!"
   end
 
+  puts message if message
+  message = nil
+
   print "#{color.capitalize}'s move (e.g. e2e4, 0-0, undo, save, quit): "
   input = $stdin.gets
   break unless input
@@ -33,27 +39,33 @@ loop do
     break
   when 'undo'
     if game.instance_variable_get(:@history).empty?
-      puts "No moves to undo."
+      message = "No moves to undo."
     else
       game.undo
       puts "Move undone."
+      $stdin.gets
     end
-  when 'save'
-    game.save
-    puts "Game saved."
-  when 'load'
-    if File.exist?("#{Time.now.to_i}.dump")
-      game = GameState.load(Time.now.to_i.to_s)
-      puts "Game loaded."
+  when /^save(?:\s+(.+))?$/
+    name = $1 ? game.save($1) : game.save
+    puts "Saved successfully to #{name}.dump."
+    $stdin.gets
+  when /^load(?:\s+(.+))?$/
+    name = $1
+    if !name
+      message = "Usage: load <filename>"
+    elsif File.exist?("saves/#{name}.dump")
+      game = GameState.load(name)
+      puts "Game loaded from #{name}.dump."
+      $stdin.gets
     else
-      puts "No save file found."
+      message = "No save file '#{name}.dump' found."
     end
   else
     begin
       success = game.make_move(input)
-      puts "Invalid move. Try again." unless success
+      message = "Invalid move. Try again." unless success
     rescue ArgumentError => e
-      puts "Error: #{e.message}"
+      message = "Error: #{e.message}"
     end
   end
 end

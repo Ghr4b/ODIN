@@ -74,13 +74,14 @@ class GameState
     end
   end
   def save(filename = Time.now.to_i)
-    File.open("#{filename}.dump", "wb") do |f|
+    File.open("saves/#{filename}.dump", "wb") do |f|
       f.write(Marshal.dump(self))
     end
+    filename
   end
 
   def self.load(filename)
-    File.open("#{filename}.dump", "rb") do |f|
+    File.open("saves/#{filename}.dump", "rb") do |f|
       Marshal.load(f)
     end
   end

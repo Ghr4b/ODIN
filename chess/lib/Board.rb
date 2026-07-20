@@ -103,6 +103,8 @@ class Board
   def undo_move(move)
     set_piece(move.from, move.piece)
     set_piece(move.to, move.capture)
+    move.piece.position = move.from
+    move.capture.position = move.to if move.capture
   end
 
   private

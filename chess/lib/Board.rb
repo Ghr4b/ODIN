@@ -19,9 +19,6 @@ class Board
       capture = piece_at(to)
     end
     piece.position = to
-    if piece.is_a?(King) || piece.is_a?(Rook)
-      piece.has_moved = true
-    end
     set_piece(to, piece)
     set_piece(from, nil)
     capture
@@ -101,14 +98,39 @@ class Board
     [row, col]
   end
   def undo_move(move)
-    set_piece(move.from, move.piece)
-    set_piece(move.to, move.capture)
-    move.piece.position = move.from
-    move.capture.position = move.to if move.capture
+    if move.castle
+      undo_castling(move)
+    else
+      set_piece(move.from, move.piece)
+      set_piece(move.to, move.capture)
+      move.piece.position = move.from
+      if move.piece.is_a?(King) or move.piece.is_a?(Rook)
+        move.piece.moves -= 1
+      end
+      move.capture.position = move.to if move.capture
+    end
+  end
+  def undo_castling(move)
+    target_king_col = move.castle == :long ? 2 : 6
+    row = [0, 7].find { |r| piece_at([r, target_king_col]).is_a?(King) }
+    return unless row
+
+    king_dest  = [row, target_king_col]
+    king_start = [row, 4]
+    rook_dest  = [row, move.castle == :long ? 0 : 7]
+    rook_src   = [row, move.castle == :long ? 3 : 5]
+
+    king = piece_at(king_dest)
+    rook = piece_at(rook_src)
+
+    move(king_dest, king_start)
+    move(rook_src, rook_dest)
+
+    king.moves -= 1
+    rook.moves -= 1
   end
 
   private
-
   def to_index(pos)
     row, col = pos
     row * SIZE + col

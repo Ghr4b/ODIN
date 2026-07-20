@@ -65,11 +65,11 @@ class King < Piece
     [1, -1],  [1, 0],  [1, 1]
   ].freeze
 
-  attr_accessor :has_moved
+  attr_accessor :moves
 
   def initialize(color, position)
     super
-    @has_moved = false
+    @moves = 0
   end
 
   def symbol
@@ -85,6 +85,9 @@ class King < Piece
       moves << [r, c] if on_board?(r, c) and ( board.piece_at([r, c]) == nil or enemy?(board.piece_at([r, c])))
     end
     moves
+  end
+  def has_moved?
+    @moves > 0
   end
 end
 
@@ -162,11 +165,11 @@ class Rook < Piece
 
   DIRECTIONS = [[-1, 0], [1, 0], [0, -1], [0, 1]].freeze
 
-  attr_accessor :has_moved
+  attr_accessor :moves
 
   def initialize(color, position)
     super
-    @has_moved = false
+    @moves = 0
   end
 
   def symbol
@@ -175,6 +178,9 @@ class Rook < Piece
 
   def pseudo_legal_moves(board)
     slide_moves(board, DIRECTIONS)
+  end
+  def has_moved?
+    @moves > 0
   end
 end
 

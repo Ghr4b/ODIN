@@ -17,7 +17,7 @@ RSpec.describe Rook do
 
   describe '#has_moved' do
     it 'initializes to false' do
-      expect(Rook.new(:white, [0, 0]).has_moved).to be false
+      expect(Rook.new(:white, [0, 0]).has_moved?).to be false
     end
   end
 

@@ -17,13 +17,13 @@ RSpec.describe King do
 
   describe '#has_moved' do
     it 'initializes to false' do
-      expect(King.new(:white, [0, 4]).has_moved).to be false
+      expect(King.new(:white, [0, 4]).has_moved?).to be false
     end
 
     it 'can be set to true' do
       king = King.new(:white, [0, 4])
-      king.has_moved = true
-      expect(king.has_moved).to be true
+      king.moves = 1
+      expect(king.has_moved?).to be true
     end
   end
 

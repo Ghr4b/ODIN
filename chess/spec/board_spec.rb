@@ -75,16 +75,20 @@ RSpec.describe Board do
       expect(board.move([3, 3], [4, 4])).to be_nil
     end
 
-    it 'sets has_moved for King' do
+    it 'tracks has_moved for King via moves counter' do
       king = board.piece_at([0, 4])
-      board.move([0, 4], [1, 4])
-      expect(king.has_moved).to be true
+      king.moves = 1
+      expect(king.has_moved?).to be true
+      king.moves = 0
+      expect(king.has_moved?).to be false
     end
 
-    it 'sets has_moved for Rook' do
+    it 'tracks has_moved for Rook via moves counter' do
       rook = board.piece_at([0, 0])
-      board.move([0, 0], [1, 0])
-      expect(rook.has_moved).to be true
+      rook.moves = 1
+      expect(rook.has_moved?).to be true
+      rook.moves = 0
+      expect(rook.has_moved?).to be false
     end
   end
 

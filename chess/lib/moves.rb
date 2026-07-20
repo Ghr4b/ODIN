@@ -26,13 +26,13 @@ def can_castle(board, color, side)
   king_pos = [rank, 4]
 
   king = board.piece_at(king_pos)
-  return false unless king.is_a?(King) && !king.has_moved
+  return false unless king.is_a?(King) && !king.has_moved?
 
   rook_col = side == :long ? 0 : 7
   rook_pos = [rank, rook_col]
 
   rook = board.piece_at(rook_pos)
-  return false unless rook.is_a?(Rook) && !rook.has_moved
+  return false unless rook.is_a?(Rook) && !rook.has_moved?
 
   empty_cols = side == :long ? [1, 2, 3] : [5, 6]
   return false unless empty_cols.all? { |col| board.piece_at([rank, col]).nil? }
@@ -68,6 +68,10 @@ def apply_move(board, move, color, last_move = nil)
       capture = board.move(move.from, move.to)
       move.capture = capture
 
+      if piece.is_a?(King) || piece.is_a?(Rook)
+        piece.moves += 1
+      end
+
       if piece.is_a?(Pawn) && (move.to[0] == 0 || move.to[0] == 7)
         board.handle_promotion(move.to, move.promotion, color)
       end
@@ -90,9 +94,9 @@ def castle(board, color, side)
   board.move(king_start, king_dest)
   board.move(rook_start, rook_dest)
   rook = board.piece_at(rook_dest)
-  rook.has_moved = true
+  rook.moves += 1
   king = board.piece_at(king_dest)
-  king.has_moved = true
+  king.moves += 1
 end
 def handle_enpassant(board, move, last_move, piece)
   return false unless piece.is_a?(Pawn)

@@ -167,14 +167,14 @@ RSpec.describe 'moves.rb functions' do
 
       it 'rejects if king has moved' do
         king = setup_kingside(:white)
-        king.has_moved = true
+        king.moves = 1
         expect(can_castle(board, :white, :short)).to be false
       end
 
       it 'rejects if rook has moved' do
         setup_kingside(:white)
         rook = board.piece_at([0, 7])
-        rook.has_moved = true
+        rook.moves = 1
         expect(can_castle(board, :white, :short)).to be false
       end
 
@@ -258,8 +258,8 @@ RSpec.describe 'moves.rb functions' do
       board.set_piece([0, 4], king)
       board.set_piece([0, 0], rook)
       castle(board, :white, :long)
-      expect(king.has_moved).to be true
-      expect(rook.has_moved).to be true
+      expect(king.has_moved?).to be true
+      expect(rook.has_moved?).to be true
     end
   end
 

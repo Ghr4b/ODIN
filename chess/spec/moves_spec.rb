@@ -321,6 +321,11 @@ RSpec.describe 'moves.rb functions' do
   describe '#apply_move' do
     before { clear_board }
 
+    def setup_minimal
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+    end
+
     it 'applies a simple move' do
       board.set_piece([1, 0], Pawn.new(:white, [1, 0]))
       board.set_piece([0, 4], King.new(:white, [0, 4]))
@@ -357,7 +362,7 @@ RSpec.describe 'moves.rb functions' do
       expect(board.piece_at([0, 6])).to be_a(King)
     end
 
-    it 'handles promotion' do
+    it 'handles promotion to queen' do
       board.set_piece([6, 0], Pawn.new(:white, [6, 0]))
       board.set_piece([0, 4], King.new(:white, [0, 4]))
       board.set_piece([7, 4], King.new(:black, [7, 4]))
@@ -368,6 +373,33 @@ RSpec.describe 'moves.rb functions' do
       success, = apply_move(board, move, :white)
       expect(success).to be true
       expect(board.piece_at([7, 0])).to be_a(Queen)
+    end
+
+    it 'handles promotion to rook' do
+      setup_minimal
+      board.set_piece([6, 1], Pawn.new(:white, [6, 1]))
+      move = Move.new(from: [6, 1], to: [7, 1], promotion: :rook)
+      success, = apply_move(board, move, :white)
+      expect(success).to be true
+      expect(board.piece_at([7, 1])).to be_a(Rook)
+    end
+
+    it 'handles promotion to bishop' do
+      setup_minimal
+      board.set_piece([6, 2], Pawn.new(:white, [6, 2]))
+      move = Move.new(from: [6, 2], to: [7, 2], promotion: :bishop)
+      success, = apply_move(board, move, :white)
+      expect(success).to be true
+      expect(board.piece_at([7, 2])).to be_a(Bishop)
+    end
+
+    it 'handles promotion to knight' do
+      setup_minimal
+      board.set_piece([6, 3], Pawn.new(:white, [6, 3]))
+      move = Move.new(from: [6, 3], to: [7, 3], promotion: :knight)
+      success, = apply_move(board, move, :white)
+      expect(success).to be true
+      expect(board.piece_at([7, 3])).to be_a(Knight)
     end
 
     it 'sets check flag when delivering check' do
@@ -381,6 +413,101 @@ RSpec.describe 'moves.rb functions' do
       success, result_move = apply_move(board, move, :white)
       expect(success).to be true
       expect(result_move.check).to be true
+    end
+
+    it 'sets checkmate flag when delivering checkmate' do
+      clear_board
+      board.set_piece([0, 0], King.new(:white, [0, 0]))
+      board.set_piece([7, 7], King.new(:black, [7, 7]))
+      board.set_piece([0, 1], Rook.new(:black, [0, 1]))
+      board.set_piece([5, 5], Queen.new(:black, [5, 5]))
+      board.set_piece([2, 2], King.new(:black, [2, 2]))
+      board.set_piece([1, 0], Rook.new(:black, [1, 0]))
+      move = Move.new(from: [5, 5], to: [1, 1])
+      success, result_move = apply_move(board, move, :black)
+      expect(success).to be true
+      expect(result_move.checkmate).to be true
+    end
+
+    it 'returns move with piece set' do
+      setup_minimal
+      board.set_piece([1, 0], Pawn.new(:white, [1, 0]))
+      move = Move.new(from: [1, 0], to: [2, 0])
+      success, result_move = apply_move(board, move, :white)
+      expect(result_move.piece).to be_a(Pawn)
+      expect(result_move.piece.color).to eq(:white)
+    end
+
+    it 'returns move with capture set after capture' do
+      setup_minimal
+      board.set_piece([3, 0], Pawn.new(:white, [3, 0]))
+      board.set_piece([4, 0], Pawn.new(:black, [4, 0]))
+      move = Move.new(from: [3, 0], to: [4, 0])
+      success, result_move = apply_move(board, move, :white)
+      expect(result_move.capture).to be_a(Pawn)
+      expect(result_move.capture.color).to eq(:black)
+    end
+
+    it 'returns move with capture nil for non-capture' do
+      setup_minimal
+      board.set_piece([1, 0], Pawn.new(:white, [1, 0]))
+      move = Move.new(from: [1, 0], to: [2, 0])
+      success, result_move = apply_move(board, move, :white)
+      expect(result_move.capture).to be_nil
+    end
+
+    it 'increments moves counter for King' do
+      setup_minimal
+      king = board.piece_at([0, 4])
+      move = Move.new(from: [0, 4], to: [1, 4])
+      apply_move(board, move, :white)
+      expect(king.moves).to eq(1)
+    end
+
+    it 'increments moves counter for Rook' do
+      setup_minimal
+      board.set_piece([0, 0], Rook.new(:white, [0, 0]))
+      rook = board.piece_at([0, 0])
+      move = Move.new(from: [0, 0], to: [1, 0])
+      apply_move(board, move, :white)
+      expect(rook.moves).to eq(1)
+    end
+
+    it 'does not increment moves counter for Pawn' do
+      setup_minimal
+      board.set_piece([1, 0], Pawn.new(:white, [1, 0]))
+      pawn = board.piece_at([1, 0])
+      expect(pawn).not_to respond_to(:moves)
+    end
+
+    it 'increments moves exactly once for a King move' do
+      setup_minimal
+      king = board.piece_at([0, 4])
+      move = Move.new(from: [0, 4], to: [1, 4])
+      apply_move(board, move, :white)
+      expect(king.moves).to eq(1)
+      # Move the king again
+      move2 = Move.new(from: [1, 4], to: [2, 4])
+      apply_move(board, move2, :white)
+      expect(king.moves).to eq(2)
+    end
+
+    it 'returns castling move with castle field' do
+      board.set_piece([0, 4], King.new(:white, [0, 4]))
+      board.set_piece([0, 7], Rook.new(:white, [0, 7]))
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+      move = Move.new
+      move.castle = :short
+      success, result_move = apply_move(board, move, :white)
+      expect(result_move.castle).to eq(:short)
+    end
+
+    it 'returns promotion move with promotion field' do
+      setup_minimal
+      board.set_piece([6, 0], Pawn.new(:white, [6, 0]))
+      move = Move.new(from: [6, 0], to: [7, 0], promotion: :knight)
+      success, result_move = apply_move(board, move, :white)
+      expect(result_move.promotion).to eq(:knight)
     end
   end
 end

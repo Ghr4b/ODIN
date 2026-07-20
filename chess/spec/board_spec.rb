@@ -254,6 +254,47 @@ RSpec.describe Board do
       expect(board.piece_at([1, 0])).to eq(white_pawn)
       expect(board.piece_at([3, 0])).to be_nil
     end
+
+    it 'decrements moves counter for King' do
+      king = King.new(:white, [0, 4])
+      board.set_piece([0, 4], king)
+      king.moves = 1
+      move = Move.new(from: [0, 4], to: [1, 4], piece: king, capture: nil)
+      board.undo_move(move)
+      expect(king.moves).to eq(0)
+      expect(king.has_moved?).to be false
+    end
+
+    it 'decrements moves counter for Rook' do
+      rook = Rook.new(:white, [0, 0])
+      board.set_piece([0, 0], rook)
+      rook.moves = 1
+      move = Move.new(from: [0, 0], to: [1, 0], piece: rook, capture: nil)
+      board.undo_move(move)
+      expect(rook.moves).to eq(0)
+      expect(rook.has_moved?).to be false
+    end
+
+    it 'restores position after King move and resets has_moved?' do
+      king = King.new(:white, [0, 4])
+      board.set_piece([0, 4], king)
+      board.set_piece([7, 4], King.new(:black, [7, 4]))
+      move = Move.new
+      move.from = [0, 4]
+      move.to = [1, 4]
+      move.piece = king
+      move.capture = nil
+
+      board.move([0, 4], [1, 4])
+      king.moves = 1
+      board.undo_move(move)
+
+      expect(board.piece_at([0, 4])).to be(king)
+      expect(board.piece_at([1, 4])).to be_nil
+      expect(king.position).to eq([0, 4])
+      expect(king.moves).to eq(0)
+      expect(king.has_moved?).to be false
+    end
   end
 
   describe '#display' do

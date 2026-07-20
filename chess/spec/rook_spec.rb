@@ -7,7 +7,7 @@ RSpec.describe Rook do
 
   describe '#symbol' do
     it 'returns white rook symbol' do
-      expect(Rook.new(:white, [0, 0]).symbol).to eq('♖')
+      expect(Rook.new(:white, [0, 0]).symbol).to eq('♜')
     end
 
     it 'returns black rook symbol' do

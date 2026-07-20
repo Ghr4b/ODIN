@@ -32,7 +32,7 @@ end
 
 class Pawn < Piece
   def symbol
-    color == :white ? '♙' : '♟'
+    '♟'
   end
   def pseudo_legal_moves(board)
     moves = []
@@ -73,7 +73,7 @@ class King < Piece
   end
 
   def symbol
-    color == :white ? '♔' : '♚'
+    '♚'
   end
 
   def pseudo_legal_moves(board)
@@ -128,7 +128,7 @@ class Knight < Piece
   ].freeze
 
   def symbol
-    color == :white ? '♘' : '♞'
+    '♞'
   end
 
   def pseudo_legal_moves(board)
@@ -149,7 +149,7 @@ class Bishop < Piece
   DIRECTIONS = [[-1, -1], [-1, 1], [1, -1], [1, 1]].freeze
 
   def symbol
-    color == :white ? '♗' : '♝'
+    '♝'
   end
 
   def pseudo_legal_moves(board)
@@ -170,7 +170,7 @@ class Rook < Piece
   end
 
   def symbol
-    color == :white ? '♖' : '♜'
+    '♜'
   end
 
   def pseudo_legal_moves(board)
@@ -187,7 +187,7 @@ class Queen < Piece
   ].freeze
 
   def symbol
-    color == :white ? '♕' : '♛'
+    '♛'
   end
 
   def pseudo_legal_moves(board)

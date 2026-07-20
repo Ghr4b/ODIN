@@ -7,7 +7,7 @@ RSpec.describe Bishop do
 
   describe '#symbol' do
     it 'returns white bishop symbol' do
-      expect(Bishop.new(:white, [0, 2]).symbol).to eq('♗')
+      expect(Bishop.new(:white, [0, 2]).symbol).to eq('♝')
     end
 
     it 'returns black bishop symbol' do

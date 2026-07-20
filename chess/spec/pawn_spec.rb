@@ -8,7 +8,7 @@ RSpec.describe Pawn do
 
   describe '#symbol' do
     it 'returns white pawn symbol' do
-      expect(Pawn.new(:white, [1, 0]).symbol).to eq('♙')
+      expect(Pawn.new(:white, [1, 0]).symbol).to eq('♟')
     end
 
     it 'returns black pawn symbol' do

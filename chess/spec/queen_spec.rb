@@ -7,7 +7,7 @@ RSpec.describe Queen do
 
   describe '#symbol' do
     it 'returns white queen symbol' do
-      expect(Queen.new(:white, [0, 3]).symbol).to eq('♕')
+      expect(Queen.new(:white, [0, 3]).symbol).to eq('♛')
     end
 
     it 'returns black queen symbol' do

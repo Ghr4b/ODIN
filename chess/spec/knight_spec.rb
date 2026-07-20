@@ -7,7 +7,7 @@ RSpec.describe Knight do
 
   describe '#symbol' do
     it 'returns white knight symbol' do
-      expect(Knight.new(:white, [0, 1]).symbol).to eq('♘')
+      expect(Knight.new(:white, [0, 1]).symbol).to eq('♞')
     end
 
     it 'returns black knight symbol' do

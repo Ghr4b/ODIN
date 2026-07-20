@@ -37,26 +37,36 @@ class Board
     @squares.compact.select { |piece| piece.color == color }
   end
   def display
-    bg_light = "\e[48;5;250m\e[30m"
-    bg_dark  = "\e[48;5;238m\e[37m"
+    bg_light = "\e[48;5;250m" # Light grey board tile
+    bg_dark  = "\e[48;5;238m" # Dark grey board tile
+    fg_white = "\e[97m"       # Bright white text (for white pieces)
+    fg_black = "\e[30m"       # Black text (for black pieces)
     reset    = "\e[0m"
 
-    puts "   a b c d e f g h"
+    # Perfectly aligned 3-character spacing to match column widths
+    file_labels = "   a  b  c  d  e  f  g  h"
 
-    @squares.each_slice(8).with_index do |row, row_idx|
+    puts file_labels
+
+    @squares.each_slice(8).to_a.reverse.each_with_index do |row, row_idx|
       row_num = 8 - row_idx
 
       formatted_row = row.map.with_index do |piece, col_idx|
-        bg = (row_idx + col_idx).even? ? bg_light : bg_dark
-        symbol = piece ? piece.to_s : " "
+        # Alternating checkerboard pattern (A1 is dark tile)
+        bg = (row_num + col_idx).even? ? bg_light : bg_dark
 
-        "#{bg} #{symbol} #{reset}"
+        if piece
+          fg = piece.color == :white ? fg_white : fg_black
+          "#{bg}#{fg} #{piece.symbol} #{reset}"
+        else
+          "#{bg}   #{reset}" # Empty square padding
+        end
       end.join
 
       puts "#{row_num} #{formatted_row} #{row_num}"
     end
 
-    puts "   a b c d e f g h"
+    puts file_labels
   end
   def incheck?(color)
     opponent = color == :white ? :black : :white

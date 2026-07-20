@@ -7,7 +7,7 @@ RSpec.describe King do
 
   describe '#symbol' do
     it 'returns white king symbol' do
-      expect(King.new(:white, [0, 4]).symbol).to eq('♔')
+      expect(King.new(:white, [0, 4]).symbol).to eq('♚')
     end
 
     it 'returns black king symbol' do

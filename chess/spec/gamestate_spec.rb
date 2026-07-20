@@ -334,8 +334,10 @@ RSpec.describe GameState do
       expect(game.board.piece_at([5, 3])).to be_a(Pawn)
       expect(game.board.piece_at([4, 3])).to be_nil
       game.undo
-      expect(game.board.piece_at([3, 4])).to be_a(Pawn)
-      expect(game.board.piece_at([3, 4]).color).to eq(:white)
+      expect(game.board.piece_at([4, 4])).to be_a(Pawn)
+      expect(game.board.piece_at([4, 4]).color).to eq(:white)
+      expect(game.board.piece_at([4, 3])).to be_a(Pawn)
+      expect(game.board.piece_at([4, 3]).color).to eq(:black)
       expect(game.board.piece_at([5, 3])).to be_nil
     end
 

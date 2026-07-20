@@ -102,12 +102,20 @@ class Board
       undo_castling(move)
     else
       set_piece(move.from, move.piece)
-      set_piece(move.to, move.capture)
+      if move.capture
+        set_piece(move.capture.position, move.capture)
+        if move.capture.position != move.to
+          set_piece(move.to, nil)
+        end
+      else
+        set_piece(move.to, nil)
+      end
+
       move.piece.position = move.from
       if move.piece.is_a?(King) or move.piece.is_a?(Rook)
         move.piece.moves -= 1
       end
-      move.capture.position = move.to if move.capture
+
     end
   end
   def undo_castling(move)

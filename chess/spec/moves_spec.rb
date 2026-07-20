@@ -421,7 +421,6 @@ RSpec.describe 'moves.rb functions' do
       board.set_piece([7, 7], King.new(:black, [7, 7]))
       board.set_piece([0, 1], Rook.new(:black, [0, 1]))
       board.set_piece([5, 5], Queen.new(:black, [5, 5]))
-      board.set_piece([2, 2], King.new(:black, [2, 2]))
       board.set_piece([1, 0], Rook.new(:black, [1, 0]))
       move = Move.new(from: [5, 5], to: [1, 1])
       success, result_move = apply_move(board, move, :black)
@@ -441,8 +440,8 @@ RSpec.describe 'moves.rb functions' do
     it 'returns move with capture set after capture' do
       setup_minimal
       board.set_piece([3, 0], Pawn.new(:white, [3, 0]))
-      board.set_piece([4, 0], Pawn.new(:black, [4, 0]))
-      move = Move.new(from: [3, 0], to: [4, 0])
+      board.set_piece([4, 1], Pawn.new(:black, [4, 1]))
+      move = Move.new(from: [3, 0], to: [4, 1])
       success, result_move = apply_move(board, move, :white)
       expect(result_move.capture).to be_a(Pawn)
       expect(result_move.capture.color).to eq(:black)

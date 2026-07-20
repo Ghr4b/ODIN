@@ -85,12 +85,12 @@ RSpec.describe GameState do
       move = game.parse_move('e7e8q')
       expect(move.from).to eq([6, 4])
       expect(move.to).to eq([7, 4])
-      expect(move.promotion).to eq(:Q)
+      expect(move.promotion).to eq(:queen)
     end
 
     it 'parses promotion with equals sign' do
       move = game.parse_move('e7e8=Q')
-      expect(move.promotion).to eq(:Q)
+      expect(move.promotion).to eq(:queen)
     end
 
     it 'raises error for invalid format' do

@@ -47,7 +47,8 @@ class GameState
 
     # promotion
     if clean_input.match(/([QRBN])$/i)
-      move.promotion = $1.upcase.to_sym
+      promotion_map = { Q: :queen, R: :rook, B: :bishop, N: :knight }
+      move.promotion = promotion_map[$1.upcase.to_sym]
       clean_input = clean_input.sub(/=?[QRBN]$/i, '')
     end
 

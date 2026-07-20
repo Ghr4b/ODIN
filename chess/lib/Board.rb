@@ -82,13 +82,13 @@ class Board
   end
   def handle_promotion(pos, promotion, color)
     case promotion
-    when :queen
+    when :Q, :queen
       set_piece(pos, Queen.new(color, pos))
-    when :rook
+    when :R, :rook
       set_piece(pos, Rook.new(color, pos))
-    when :bishop
+    when :B, :bishop
       set_piece(pos, Bishop.new(color, pos))
-    when :knight
+    when :N, :knight
       set_piece(pos, Knight.new(color, pos))
     end
   end

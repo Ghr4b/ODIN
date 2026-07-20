@@ -34,7 +34,7 @@ class Pawn < Piece
   def symbol
     color == :white ? '♙' : '♟'
   end
-  def possible_moves(board)
+  def pseudo_legal_moves(board)
     moves = []
     row, col = position
     direction = color == :white ? 1 : -1
@@ -120,11 +120,6 @@ module SlidingPiece
 end
 
 
-  def on_starting_rank?
-    start_rank = color == :white ? 6 : 1
-    position[0] == start_rank
-  end
-end
 
 class Knight < Piece
   KNIGHT_OFFSETS = [
